@@ -1,0 +1,9 @@
+version: '3'
+services:
+  app:
+    image: training.btech.id/flask-shortlink/diofathurr:latest
+    hostname: flask-shortlink
+    container_name: flask-shortlink
+    ports:
+      - "5080:80"
+

@@ -1,0 +1,46 @@
+stages:
+  - build
+  - deploy
+  - dastz
+
+variables:
+  REGISTRY: training.btech.id
+
+build-docker-image:
+  stage: build
+  tags:
+    - docker
+  image: docker:latest
+  variables:
+    IMAGE: $REGISTRY/flask-shortlink/diofathurr:latest
+  before_script:
+    - docker login training.btech.id --username btacademy --password 'pyR$2YM#AB5V'
+  script:
+    - 'docker login $REGISTRY'
+    - 'docker build -t $IMAGE .'
+    - 'docker push $IMAGE'
+
+deploy-to-docker:
+  stage: deploy
+  tags:
+    - shell
+  script:
+  - docker-compose down --rmi all
+  - docker-compose up -d
+
+dast-job:
+  stage: dastz
+  tags:
+    - docker
+  image: owasp/zap2docker-weekly
+  variables:
+    DAST_WEBSITE: http://10.20.20.11:5080
+  allow_failure: true
+  script:
+    - mkdir /zap/wrk
+    - zap.sh -cmd -quickurl $DAST_WEBSITE -quickprogress -quickout /zap/wrk/zap_report.xml
+    - cp /zap/wrk/zap_report.xml $CI_PROJECT_DIR
+  artifacts:
+    paths:
+      - zap_report.xml
+
